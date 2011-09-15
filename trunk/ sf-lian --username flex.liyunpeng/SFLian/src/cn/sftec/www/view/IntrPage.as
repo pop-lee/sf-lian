@@ -1,5 +1,10 @@
-package cn.sftech.www.view
+package cn.sftec.www.view
 {
+	
+	import cn.sftec.www.event.ChangePageEvent;
+	import cn.sftech.www.view.SFButton;
+	import cn.sftech.www.view.SFContainer;
+	import cn.sftech.www.view.SFLabel;
 	
 	import flash.display.Loader;
 	import flash.display.Sprite;
@@ -45,7 +50,7 @@ package cn.sftech.www.view
 			backMainBtn.width = 100;
 			backMainBtn.height = 30;
 			backMainBtn.x = 5;
-			backMainBtn.y = 300;
+			backMainBtn.y = 290;
 //			backMainBtn.label = "";
 //			backMainBtn.backgroundImage = ModelLocator.getImageResource("returnBtn");
 			backMainBtn.addEventListener(MouseEvent.CLICK,toMainPage);
@@ -59,9 +64,9 @@ package cn.sftech.www.view
 		
 		private function toMainPage(event : MouseEvent) : void
 		{
-//			var changePageEvent : ChangePageEvent = new ChangePageEvent(ChangePageEvent.CHANGE_PAGE_EVENT);
-//			changePageEvent.data = ChangePageEvent.TO_MAIN_PAGE;
-//			this.dispatchEvent(changePageEvent);
+			var changePageEvent : ChangePageEvent = new ChangePageEvent();
+			changePageEvent.data = ChangePageEvent.TO_MAIN_PAGE;
+			this.dispatchEvent(changePageEvent);
 		}
 	}
 }

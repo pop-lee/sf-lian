@@ -6,6 +6,9 @@ package cn.sftec.www.model
 	{
 		private static var _model : ModelLocator = new ModelLocator();
 		
+		//总分数排行榜列表数组
+		public var topScoreArr : Vector.<int> = new Vector.<int>;
+		
 		public function ModelLocator()
 		{
 			if(_model != null) {
