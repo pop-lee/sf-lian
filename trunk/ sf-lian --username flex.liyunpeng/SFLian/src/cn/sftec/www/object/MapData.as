@@ -1,20 +1,38 @@
 package cn.sftec.www.object
 {
 	import cn.sftech.www.util.MathUtil;
+	
+	import flash.display.SpreadMethod;
+	import flash.display.Sprite;
+	import flash.system.System;
 
 	public class MapData
 	{
 		public var blockCount : int = 0;
 		
-		private var totalRow : int = 10;
-		private var totalCol : int = 10;
+		/**
+		 * Map总行数
+		 */
+		public const TOTAL_ROW : int = 10;
+		/**
+		 * Map总列数
+		 */
+		public const TOTAL_COL : int = 10;
 		
-		private var blockTotalRow : int = 8;
-		private var blockTotalCol : int = 8;
+		//显示块总行数
+		private const BLOCK_TOTAL_ROW : int = 8;
+		//显示块总列数
+		private const BLOCK_TOTAL_COL : int = 8;
 		
+		/**
+		 * 地图存储数据二维数组
+		 */
 		public var mapArr : Vector.<Vector.<Block>> = new Vector.<Vector.<Block>>;
 		
-		public var mapBlockArr : Vector.<Block> = new Vector.<Block>(blockTotalRow*blockTotalCol);
+		/**
+		 * 存储现存的块
+		 */
+		public var mapBlockArr : Vector.<Block> = new Vector.<Block>(BLOCK_TOTAL_ROW*BLOCK_TOTAL_COL);
 		
 		public function MapData()
 		{
@@ -23,8 +41,8 @@ package cn.sftec.www.object
 		
 		private function init() : void
 		{
-			for(var i : int = 0;i < totalRow;i++) {
-				mapArr.push(new Vector.<Block>(totalCol));
+			for(var i : int = 0;i < TOTAL_ROW;i++) {
+				mapArr.push(new Vector.<Block>(TOTAL_COL));
 			}
 		}
 		
@@ -43,17 +61,20 @@ package cn.sftec.www.object
 				blockType.push(Block9);
 			
 			var blockCount : int = 0;
-			for(var i : int = 1;i <= blockTotalRow;i++) {
-				for(var j : int = 1;j <= blockTotalCol;j++) {
-					var block : Block = new (blockType[int((blockCount-1)/2)%blockType.length] as Class);
-					block.mapX = i;
-					block.mapY = j;
-					mapArr[i][j] = block;
+			var log : String = "";
+			for(var i : int = 1;i <= BLOCK_TOTAL_ROW;i++) {
+				for(var j : int = 1;j <= BLOCK_TOTAL_COL;j++) {
+					var block : Block = new (blockType[int(blockCount/2)%blockType.length] as Class);
+					log += block.type;
+					block.mapX = j;
+					block.mapY = i;
+					mapArr[j][i] = block;
 					mapBlockArr[blockCount] = block;
 					blockCount ++;
 				}
+				trace(log);
+				log = "";
 			}
-			shuffle();
 		}
 		
 		
@@ -65,8 +86,8 @@ package cn.sftec.www.object
 			var tmpX : int;
 			var tmpY : int;
 			for(var i : int = 0;i < 2000; i++) {
-				var blockAIndex : int = MathUtil.random(0,mapBlockArr.length-1);
-				var blockBIndex : int = MathUtil.random(0,mapBlockArr.length-1);
+				var blockAIndex : int = MathUtil.random(0,mapBlockArr.length);
+				var blockBIndex : int = MathUtil.random(0,mapBlockArr.length);
 				
 				var blockA : Block = mapBlockArr[blockAIndex];
 				var blockB : Block = mapBlockArr[blockBIndex];
@@ -75,9 +96,17 @@ package cn.sftec.www.object
 				tmpY = blockB.mapY;
 				blockB.setData(blockA.mapX,blockA.mapY);
 				blockA.setData(tmpX,tmpY);
-				mapArr[blockA.mapX][blockA.mapY] = blockA;
-				mapArr[blockB.mapX][blockB.mapY] = blockB;
+				mapArr[blockA.mapY][blockA.mapX] = blockA;
+				mapArr[blockB.mapY][blockB.mapX] = blockB;
 			}
+		}
+		
+		public function removeBlock(block : Block) : void
+		{
+			mapArr[block.mapY][block.mapX] = null;
+			mapBlockArr.splice(mapBlockArr.indexOf(block),1);
+			
+			System.gc();
 		}
 	}
 }

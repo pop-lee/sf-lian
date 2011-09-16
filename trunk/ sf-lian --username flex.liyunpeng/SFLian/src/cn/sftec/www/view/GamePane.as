@@ -3,19 +3,32 @@ package cn.sftec.www.view
 	import cn.sftec.www.object.Block;
 	import cn.sftec.www.object.MapData;
 	import cn.sftech.www.view.SFSprite;
+	import cn.sftec.www.view.ConnectLines;
 	
 	import flash.events.MouseEvent;
 	
 	public class GamePane extends SFSprite
 	{
-		private var m_checkerMap:Array;
+		private var m_checkerMap:Vector.<Vector.<Block>>;
 		
-		private var m_row:uint = 8;
-		private var m_col:uint = 8;
-		
+		//当前块
 		private var currentBlock : Block;
+		
 		protected var olcBlock:Block;
+		//上一个选中的块
 		protected var prevBlock:Block;
+		
+		protected var m_connectPath:Array;
+		//连击次数
+		protected var m_continuousNum:uint;
+		
+//		protected var m_connectLines:ConnectLines;
+		
+		private var mapData : MapData;
+		
+		private var focusIn : FocusIn;
+		
+		protected var m_connectLines:ConnectLines;
 		
 		public function GamePane()
 		{
@@ -25,105 +38,101 @@ package cn.sftec.www.view
 		
 		private function init() : void
 		{
-			var mapData : MapData = new MapData();
+			focusIn = new FocusIn()
+			focusIn.visible = false;
+			addChild(focusIn);
+			m_connectLines = new ConnectLines();
+			m_connectLines.setChessmanSize(Block.CHESSMAN_LENGTH, Block.CHESSMAN_LENGTH);
+			m_connectLines.x = -Block.CHESSMAN_LENGTH;
+			m_connectLines.y = -Block.CHESSMAN_LENGTH;
+			addChild(m_connectLines);
+			mapData = new MapData();
 			mapData.createMap(6);
+//			m_checkerMap = mapData.mapArr;
+//			for each(var block : Block in mapData.mapBlockArr) {
+//				block.x = (block.mapX-1)*Block.CHESSMAN_LENGTH;
+//				block.y = (block.mapY-1)*Block.CHESSMAN_LENGTH;
+//				addChild(block);
+//				block.addEventListener(MouseEvent.CLICK,onChessman_handler);
+//			}
+			refresh();
+		}
+		
+		public function refresh() : void
+		{
+			mapData.shuffle();
+			m_checkerMap = mapData.mapArr;
 			for each(var block : Block in mapData.mapBlockArr) {
 				block.x = (block.mapX-1)*Block.CHESSMAN_LENGTH;
 				block.y = (block.mapY-1)*Block.CHESSMAN_LENGTH;
 				addChild(block);
+				block.addEventListener(MouseEvent.CLICK,onChessman_handler);
 			}
 		}
 		
+		private function onChessman_handler(e:MouseEvent):void {
+			currentBlock = e.currentTarget as Block;
+			if (prevBlock != currentBlock) {
+				//显示选中状态
+				currentBlock.isCheckIn = true;
+				//把上一个棋子设置为未选中
+				if (prevBlock != null) {
+					prevBlock.isCheckIn = false;
+					focusIn.setFocus(null);
+				}
+				//判断是否点击了有效的第二颗棋子
+				if (olcBlock == null) {
+					olcBlock = currentBlock;
+					//trace(m_currChessman.category);
+				}else {
+					//trace("=========已经双击！===========");
+					if (olcBlock.type == currentBlock.type) {
+						m_connectPath = getRoute(olcBlock.mapX, olcBlock.mapY, currentBlock.mapX, currentBlock.mapY);
+						if (m_connectPath.length > 0) {
+							validDoubleClick();
+							//if (!m_chessmanList.some(isConnectChessman)) {
+							//	sendNotification(ReputMapCommand.NAME);
+							//}
+						}else {
+							olcBlock = currentBlock;
+							m_continuousNum = 0;
+						}
+					}else {
+						olcBlock = currentBlock;
+						m_continuousNum = 0;
+					}
+				}
+				//
+				prevBlock = currentBlock;
+				focusIn.setFocus(prevBlock);
+			}else {
+				currentBlock.isCheckIn = !currentBlock.isCheckIn;
+				//是否记录之前点击的棋子
+				if (currentBlock.isCheckIn) {
+					olcBlock = currentBlock;
+				}else {
+					olcBlock = null;
+				}
+			}
+		}
 		
-//		public function createMap():void {
-//			m_checkerMap = clone(modelLocator.levelManager.checkerMap.map);
-//			m_leaveChessmans = modelLocator.levelManager.leaveChessmans;
-//			//清除之前的棋子
-//			clearOldChessmanList();
-//			olcBlock = null;
-//			prevBlock = null;
-//			currentBlock = null;
-//			for (var i:uint = 0; i < m_row; i++) {
-//				for (var j:uint = 0; j < m_col; j++ ) {
-//					if (m_checkerMap[i][j] != 0) {
-//						var chessman:Block = new Block();
-//						//trace(chessman);
-//						chessman.x = j * Block.CHESSMAN_LENGTH;
-//						chessman.y = i * Block.CHESSMAN_LENGTH;
-//						chessman.addEventListener(MouseEvent.CLICK, onChessman_handler);
-//						chessman.setData(m_checkerMap[i][j], j, i);
-//						m_checkerboard.addChild(chessman);
-//						m_chessmanList.push(chessman);
-//					}
-//				}
-//			}
-//			//判断剩下的是否还能继续游戏，如果不能则强制刷新
-//			//if (!m_chessmanList.some(isConnectChessman)) {
-//			//	sendNotification(ReputMapCommand.NAME);
-//			//}
-//		}
-//		
-//		protected function onChessman_handler(e:MouseEvent):void {
-//			currentBlock = e.currentTarget as Block;
-//			if (prevBlock != currentBlock) {
-//				//显示选中状态
-//				currentBlock.isCheckIn = true;
-//				//把上一个棋子设置为为选中
-//				if (prevBlock != null) {
-//					prevBlock.isCheckIn = false;
-//				}
-//				//判断是否点击了有效的第二颗棋子
-//				if (olcBlock == null) {
-//					olcBlock = currentBlock;
-//					//trace(m_currChessman.category);
-//				}else {
-//					//trace("=========已经双击！===========");
-//					if (olcBlock.category == currentBlock.category) {
-//						m_connectPath = getRoute(olcBlock.mapX, olcBlock.mapY, currentBlock.mapX, currentBlock.mapY);
-//						if (m_connectPath.length > 0) {
-//							validDoubleClick();
-//							sendUserData();
-//							//if (!m_chessmanList.some(isConnectChessman)) {
-//							//	sendNotification(ReputMapCommand.NAME);
-//							//}
-//						}else {
-//							olcBlock = currentBlock;
-//							m_continuousNum = 0;
-//						}
-//					}else {
-//						olcBlock = currentBlock;
-//						m_continuousNum = 0;
-//					}
-//				}
-//				//
-//				prevBlock = currentBlock;
-//			}else {
-//				currentBlock.isCheckIn = !currentBlock.isCheckIn;
-//				//是否记录之前点击的棋子
-//				if (currentBlock.isCheckIn) {
-//					olcBlock = currentBlock;
-//				}else {
-//					olcBlock = null;
-//				}
-//			}
-//		}
-//		
-//		protected function validDoubleClick():void {
-//			//清除地图上消失的棋子
-//			m_checkerMap[olcBlock.mapY][olcBlock.mapX] = 0;
-//			m_checkerMap[currentBlock.mapY][currentBlock.mapX] = 0;
-//			olcBlock.visible = false;
-//			currentBlock.visible = false;
+		private function validDoubleClick():void {
+			//清除地图上消失的棋子
+			this.removeChild(olcBlock);
+			this.removeChild(currentBlock);
+			mapData.removeBlock(olcBlock);
+			mapData.removeBlock(currentBlock);
 //			m_leaveChessmans -= 2;
-//			//画线
-//			m_connectLines.addConnectLines(m_connectPath);
-//			olcBlock = null;
-//			//判断剩下的是否还能继续游戏，如果不能则强制刷新
-//			//if (!m_chessmanList.some(isConnectChessman)) {
-//			//TODO 这里做在完善一下
-//			//sendNotification(UsePropertyCommand.NAME, {propName:modelLocator.PROP_REPUT});
-//			//}
-//		}
+			//画线
+			m_connectLines.addConnectLines(m_connectPath);
+			olcBlock = null;
+			currentBlock = null;
+			//判断剩下的是否还能继续游戏，如果不能则强制刷新
+			//if (!m_chessmanList.some(isConnectChessman)) {
+			//TODO 这里做在完善一下
+			//sendNotification(UsePropertyCommand.NAME, {propName:modelLocator.PROP_REPUT});
+			//}
+		}
 		
 		/**
 		 * 连连看规则
@@ -137,8 +146,8 @@ package cn.sftec.www.view
 			//用来记录得到的路线的四个折点
 			var point_array:Array = new Array();
 			//先把m1,m2所在的点的地图值置0,否则下面的检测会把它们当障碍物
-			m_checkerMap[y1][x1] = 0;
-			m_checkerMap[y2][x2] = 0;
+			m_checkerMap[y1][x1] = null;
+			m_checkerMap[y2][x2] = null;
 			//向左搜索
 			for (x = x1 - 1; x >= 0; x--) {
 				//trace("左1");
@@ -160,7 +169,7 @@ package cn.sftec.www.view
 			}
 			
 			//向右搜索
-			for (x = x1 + 1; x < m_col; x++) {
+			for (x = x1 + 1; x < mapData.TOTAL_COL; x++) {
 				//trace("右1");
 				if (checkConnect(x1, y1, x, y1)) {
 					//trace("右");
@@ -197,7 +206,7 @@ package cn.sftec.www.view
 			}
 			
 			//向下搜索
-			for (y = y1 + 1; y < m_row; y++) {
+			for (y = y1 + 1; y < mapData.TOTAL_ROW; y++) {
 				if (checkConnect(x1, y1, x1, y)) {
 					//trace("下");
 					if (checkConnect(x1, y, x2, y) && checkConnect(x2, y, x2, y2)) {
@@ -213,8 +222,8 @@ package cn.sftec.www.view
 				}
 			}
 			//把置0的地图值恢复
-			m_checkerMap[y1][x1] = 1;
-			m_checkerMap[y2][x2] = 1;
+			m_checkerMap[y1][x1] = olcBlock;
+			m_checkerMap[y2][x2] = currentBlock;
 			//返回得到的折点,如果上面找不到可连接的则会返回一个空数组
 			return point_array;
 		}
@@ -240,7 +249,7 @@ package cn.sftec.www.view
 				for (var y:int = y1; y <= y2; y++) {
 					//trace("上--下", y, "--", m_checkerMap[y][x1]);
 					//如果有障碍
-					if (m_checkerMap[y][x1] > 0) {
+					if (m_checkerMap[y][x1] != null) {
 						return false;
 					}
 				}
@@ -254,7 +263,7 @@ package cn.sftec.www.view
 				//从左向右逐个检测
 				for (var x:int = x1; x <= x2; x++) {
 					//如果有障碍
-					if (m_checkerMap[y1][x] > 0) {
+					if (m_checkerMap[y1][x] != null) {
 						return false;
 					}
 				}
