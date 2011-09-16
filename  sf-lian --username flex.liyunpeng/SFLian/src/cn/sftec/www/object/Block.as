@@ -21,6 +21,8 @@ package cn.sftec.www.object
 		
 		public var type : int;
 		
+		public var isCheckIn : Boolean = false;
+		
 		public function Block(type : int)
 		{
 			this.type = type;

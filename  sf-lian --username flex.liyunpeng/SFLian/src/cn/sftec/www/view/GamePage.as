@@ -9,6 +9,8 @@ package cn.sftec.www.view
 	[Embed(source="access/mainPage.swf",symbol="gamePage")]
 	public class GamePage extends SFContainer
 	{
+		private var gamePane : GamePane;
+		
 		public function GamePage()
 		{
 			super();
@@ -17,7 +19,7 @@ package cn.sftec.www.view
 		
 		private function init():void
 		{
-			var gamePane : GamePane = new GamePane();
+			gamePane = new GamePane();
 			gamePane.width = 240;
 			gamePane.height = 240;
 			gamePane.x = 0;
@@ -53,7 +55,7 @@ package cn.sftec.www.view
 		
 		private function refreshMap(event : MouseEvent):void
 		{
-			
+			gamePane.refresh();
 		}
 	}
 }
