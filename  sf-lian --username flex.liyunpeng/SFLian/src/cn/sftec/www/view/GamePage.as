@@ -1,6 +1,9 @@
 package cn.sftec.www.view
 {
 	import cn.sftec.www.event.ChangePageEvent;
+	import cn.sftec.www.event.GameOverEvent;
+	import cn.sftec.www.model.ModelLocator;
+	import cn.sftech.www.view.SFApplication;
 	import cn.sftech.www.view.SFButton;
 	import cn.sftech.www.view.SFContainer;
 	
@@ -10,6 +13,8 @@ package cn.sftec.www.view
 	public class GamePage extends SFContainer
 	{
 		private var gamePane : GamePane;
+		
+		private var _model : ModelLocator = ModelLocator.getInstance();
 		
 		public function GamePage()
 		{
@@ -46,11 +51,19 @@ package cn.sftec.www.view
 			addChild(_refreshBtn);
 		}
 		
+		public function startGame() : void
+		{
+			gamePane.startGame();
+		}
+		
 		private function toMainPage(event : MouseEvent):void
 		{
+			if(_model.currentScore > 0) {
+				gamePane.gameOverHandle();
+			}
 			var changePageEvent : ChangePageEvent = new ChangePageEvent();
 			changePageEvent.data = ChangePageEvent.TO_MAIN_PAGE;
-			this.dispatchEvent(changePageEvent);
+			SFApplication.application.dispatchEvent(changePageEvent);
 		}
 		
 		private function refreshMap(event : MouseEvent):void

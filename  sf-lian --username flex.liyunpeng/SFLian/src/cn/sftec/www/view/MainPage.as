@@ -1,8 +1,9 @@
 package cn.sftec.www.view
 {
+	import cn.sftec.www.event.ChangePageEvent;
+	import cn.sftech.www.view.SFApplication;
 	import cn.sftech.www.view.SFContainer;
 	import cn.sftech.www.view.SFSprite;
-	import cn.sftec.www.event.ChangePageEvent;
 	
 	import flash.events.MouseEvent;
 	
@@ -58,25 +59,25 @@ package cn.sftec.www.view
 		{
 			var changePageEvent : ChangePageEvent = new ChangePageEvent();
 			changePageEvent.data = ChangePageEvent.TO_GAME_PAGE;
-			this.dispatchEvent(changePageEvent);
+			SFApplication.application.dispatchEvent(changePageEvent);
 		}
 		private function scoreListHandle(event : MouseEvent):void
 		{
 			var changePageEvent : ChangePageEvent = new ChangePageEvent();
 			changePageEvent.data = ChangePageEvent.TO_SCORELIST_PAGE;
-			this.dispatchEvent(changePageEvent);
+			SFApplication.application.dispatchEvent(changePageEvent);
 		}
 		private function intrGameHandle(event : MouseEvent):void
 		{
 			var changePageEvent : ChangePageEvent = new ChangePageEvent();
 			changePageEvent.data = ChangePageEvent.TO_INTR_PAGE;
-			this.dispatchEvent(changePageEvent);
+			SFApplication.application.dispatchEvent(changePageEvent);
 		}
 		private function exitGameHandle(event : MouseEvent):void
 		{
 			var changePageEvent : ChangePageEvent = new ChangePageEvent();
 			changePageEvent.data = ChangePageEvent.EXIT;
-			this.dispatchEvent(changePageEvent);
+			SFApplication.application.dispatchEvent(changePageEvent);
 		}
 	}
 }

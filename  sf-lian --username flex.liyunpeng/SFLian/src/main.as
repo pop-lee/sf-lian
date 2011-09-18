@@ -42,39 +42,38 @@ package
 			vs.percentWidth = 100;
 			vs.percentHeight = 100;
 			this.addChild(vs);
+			SFApplication.application.addEventListener(ChangePageEvent.CHANGE_PAGE_EVENT,changePageHandle);
 			
 			var mainPage : MainPage = new MainPage();
 			mainPage.percentWidth = 100;
 			mainPage.percentHeight = 100;
 			mainPage.backgroundAlpha = 0;
-			mainPage.addEventListener(ChangePageEvent.CHANGE_PAGE_EVENT,changePageHandle);
 			vs.addItem(mainPage);
 			
 			gamePage = new GamePage();
 			gamePage.percentWidth = 100;
 			gamePage.percentHeight = 100;
 			gamePage.backgroundAlpha = 0;
-			gamePage.addEventListener(ChangePageEvent.CHANGE_PAGE_EVENT,changePageHandle);
 			vs.addItem(gamePage);
 			
 			intrPage = new IntrPage();
 			intrPage.percentWidth = 100;
 			intrPage.percentHeight = 100;
 			intrPage.backgroundColor = 0x00ff00;
-			intrPage.addEventListener(ChangePageEvent.CHANGE_PAGE_EVENT,changePageHandle);
 			vs.addItem(intrPage);
 			
 			scoreListPage = new ScoreListPage();
 			scoreListPage.percentWidth = 100;
 			scoreListPage.percentHeight = 100;
 			scoreListPage.backgroundColor = 0x0000ff;
-			scoreListPage.addEventListener(ChangePageEvent.CHANGE_PAGE_EVENT,changePageHandle);
 			vs.addItem(scoreListPage);
 		}
 		
 		private function changePageHandle(event : ChangePageEvent):void
 		{
-			if(event.data == ChangePageEvent.TO_SCORELIST_PAGE) {
+			if(event.data == ChangePageEvent.TO_GAME_PAGE) {
+				gamePage.startGame();
+			} else if(event.data == ChangePageEvent.TO_SCORELIST_PAGE) {
 				scoreListPage.dataProvider = _model.topScoreArr;
 			} else if(event.data == ChangePageEvent.EXIT) {
 				MttService.exit();

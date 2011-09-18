@@ -8,8 +8,6 @@ package cn.sftec.www.object
 
 	public class MapData
 	{
-		public var blockCount : int = 0;
-		
 		/**
 		 * Map总行数
 		 */
@@ -46,7 +44,12 @@ package cn.sftec.www.object
 			}
 		}
 		
-		public function createMap(lv : int):void
+		/**
+		 * 创建关数地图的二维数组数据
+		 * @param lv 要创建地图的关数
+		 * 
+		 */		
+		public function createMapData(lv : int):void
 		{
 			var blockType : Vector.<Class> = Vector.<Class>([Block1,Block2,Block3,Block4]);
 			if(lv>1)
@@ -61,25 +64,31 @@ package cn.sftec.www.object
 				blockType.push(Block9);
 			
 			var blockCount : int = 0;
-			var log : String = "";
 			for(var i : int = 1;i <= BLOCK_TOTAL_ROW;i++) {
 				for(var j : int = 1;j <= BLOCK_TOTAL_COL;j++) {
 					var block : Block = new (blockType[int(blockCount/2)%blockType.length] as Class);
-					log += block.type;
 					block.mapX = j;
 					block.mapY = i;
 					mapArr[j][i] = block;
 					mapBlockArr[blockCount] = block;
 					blockCount ++;
 				}
-				trace(log);
-				log = "";
 			}
+		}
+		
+		public function cleanMapData():void
+		{
+			mapArr = new Vector.<Vector.<Block>>
+			for(var i : int = 0;i < TOTAL_ROW;i++) {
+				mapArr.push(new Vector.<Block>(TOTAL_COL));
+			}
+			mapBlockArr = new Vector.<Block>(BLOCK_TOTAL_ROW*BLOCK_TOTAL_COL);
+			System.gc();
 		}
 		
 		
 		/**
-		 * 洗牌整个地图
+		 * 洗牌整个地图的数据
 		 */
 		public function shuffle() : void
 		{
