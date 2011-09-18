@@ -1,13 +1,28 @@
 package cn.sftec.www.model
 {
 	import flash.errors.IllegalOperationError;
+	import flash.utils.Timer;
 
 	public class ModelLocator
 	{
 		private static var _model : ModelLocator = new ModelLocator();
 		
-		//总分数排行榜列表数组
+		/**
+		 * 当前关数
+		 */		
+		public var currentLv : uint = 1;
+		
+		/**
+		 * 总分数排行榜列表数组
+		 */
 		public var topScoreArr : Vector.<int> = new Vector.<int>;
+		
+		/**
+		 * 当前分数
+		 */		
+		public var currentScore : uint = 0;
+		
+		public var timer : Timer = new Timer(1000);
 		
 		public function ModelLocator()
 		{
@@ -20,6 +35,6 @@ package cn.sftec.www.model
 		{
 			return _model;
 		}
-
+		
 	}
 }

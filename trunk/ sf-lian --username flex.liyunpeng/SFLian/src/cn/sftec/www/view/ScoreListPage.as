@@ -2,6 +2,7 @@ package cn.sftec.www.view
 {
 	import cn.sftec.www.event.ChangePageEvent;
 	import cn.sftec.www.model.ModelLocator;
+	import cn.sftech.www.view.SFApplication;
 	import cn.sftech.www.view.SFButton;
 	import cn.sftech.www.view.SFContainer;
 	import cn.sftech.www.view.SFLabel;
@@ -60,7 +61,7 @@ package cn.sftec.www.view
 		{
 			var changePageEvent : ChangePageEvent = new ChangePageEvent();
 			changePageEvent.data = ChangePageEvent.TO_MAIN_PAGE;
-			this.dispatchEvent(changePageEvent);
+			SFApplication.application.dispatchEvent(changePageEvent);
 		}
 	}
 }
