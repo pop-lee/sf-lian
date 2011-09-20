@@ -1,6 +1,8 @@
 package cn.sftec.www.object
 {
 	import flash.display.MovieClip;
+	import flash.events.Event;
+	import flash.events.MouseEvent;
 	
 	public class Block extends MovieClip
 	{
@@ -34,5 +36,6 @@ package cn.sftec.www.object
 			mapX = x;
 			mapY = y;
 		}
+		
 	}
 }

@@ -7,6 +7,9 @@ package cn.sftec.www.model
 	{
 		private static var _model : ModelLocator = new ModelLocator();
 		
+		[Embed(source="access/numFont.swf",symbol="numFont")]
+		public static var font : Class;
+		
 		/**
 		 * 当前关数
 		 */		
@@ -22,7 +25,40 @@ package cn.sftec.www.model
 		 */		
 		public var currentScore : uint = 0;
 		
-		public var timer : Timer = new Timer(1000);
+		/**
+		 * 
+		 */
+		public var currentTimerCount : int = 0;
+		
+		/**
+		 * 倒数限制时间秒数(单位:1/2秒)
+		 */
+		public var limitTime : uint = 60;
+		
+		/**
+		 * 消去一块的分数
+		 */		
+		public static const BODY_SCORE : uint = 10;
+		
+		/**
+		 * 计时器单位(单位:毫秒)
+		 */		
+		public const TIMER_UTIL : uint = 500;
+		
+		/**
+		 * 消除一对回退秒数(单位:秒)
+		 */		
+		public const BACK_TIME : Number = 1.5;
+		
+		/**
+		 * 连击间隔时间(单位:1/2秒)
+		 */		
+		public const BATTER_TIME : uint = 3;
+		
+		/**
+		 * 游戏进行中的倒数计时器(单位:100毫秒)
+		 */		
+		public var timer : Timer = new Timer(TIMER_UTIL);
 		
 		public function ModelLocator()
 		{
