@@ -10,10 +10,12 @@ package cn.sftec.www.view
 	import cn.sftech.www.view.SFSprite;
 	
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.utils.Timer;
 	
-//	[Embed(source="access/mainPage.swf",symbol="gamePane")]
+	[Embed(source="access/mainPage.swf",symbol="gamePane")]
 	public class GamePane extends SFContainer
 	{
 		private var m_checkerMap:Vector.<Vector.<Block>>;
@@ -26,18 +28,20 @@ package cn.sftec.www.view
 		private var prevBlock:Block;
 		//连击次数
 		private var m_continuousNum:uint;
+		//上次连接时计数器计数时间
+		private var prevConnectTime : uint;
 		//地图数据
 		private var mapData : MapData;
 		//选中后焦点效果
 		private var focusIn : FocusIn;
+		//连击显示框
+		private var batterTip : BatterTip;
 		//连线的路径
 		private var m_connectPath:Array;
 		//连线
 		private var m_connectLines:ConnectLines;
-		//时间限制
-		private var timeCount : uint = 10;
-		//当前计时秒数
-		private var currentTimeCount : uint = 0;
+		//倒数三秒开始游戏的计时器
+		private var _timer : Timer = new Timer(1000,3);
 		
 		private var _model : ModelLocator = ModelLocator.getInstance();
 		
@@ -51,45 +55,38 @@ package cn.sftec.www.view
 		{
 			focusIn = new FocusIn()
 			focusIn.visible = false;
+			
+			batterTip = new BatterTip();
+			batterTip.x = 116;
+			batterTip.y = 287;
+			batterTip.width = 70;
+			batterTip.height = 21;
+			batterTip.backgroundAlpha = 0;
+			SFApplication.application.addChild(batterTip);
+			
 			m_connectLines = new ConnectLines();
 			m_connectLines.setChessmanSize(Block.CHESSMAN_LENGTH, Block.CHESSMAN_LENGTH);
 			m_connectLines.x = -Block.CHESSMAN_LENGTH;
 			m_connectLines.y = -Block.CHESSMAN_LENGTH;
 			
 			mapData = new MapData();
-			_model.timer.addEventListener(TimerEvent.TIMER,timeHandle);
+			
+			_timer.addEventListener(TimerEvent.TIMER,startTimer);
+			prevConnectTime = _model.limitTime;
 		}
 		
 		public function startGame():void
 		{
-			//当前计时器归零
-			currentTimeCount = 0;
 			//当前分数归零
 			_model.currentScore = 0;
 			//当前关数归为1
 			_model.currentLv = 1;
-			//初始化地图数据
-			mapData.createMapData(_model.currentLv);
-			//重新排列地图
-			refresh();
-			//开始计时
-			_model.timer.start();
-		}
-		
-		private function timeHandle(event : TimerEvent) :void
-		{
-			currentTimeCount++;
 			
-			//当游戏失败
-			if(currentTimeCount >= timeCount) {
-				gameOverHandle();
-			}
+			initGame();
 		}
 		
 		public function gameOverHandle() : void
 		{
-			_model.timer.stop();
-			_model.timer.reset();
 			var gameOverPage : GameOverPage = new GameOverPage();
 			gameOverPage.addEventListener(GameOverEvent.GAME_OVER_EVENT,cleanGamePane);
 			gameOverPage.width = SFApplication.application.stageWidth;
@@ -102,7 +99,7 @@ package cn.sftec.www.view
 		 * 重新刷新地图（洗牌）
 		 * 
 		 */		
-		public function refresh() : void
+		public function rebuild() : void
 		{
 			cleanGamePaneChild();
 			
@@ -112,15 +109,40 @@ package cn.sftec.www.view
 			for each(var block : Block in mapData.mapBlockArr) {
 				block.x = (block.mapX-1)*Block.CHESSMAN_LENGTH;
 				block.y = (block.mapY-1)*Block.CHESSMAN_LENGTH;
-				block.addEventListener(MouseEvent.CLICK,onChessman_handler);
 				addChild(block);
 			}
 			addChild(focusIn);
 			addChild(m_connectLines);
+			this.addEventListener(MouseEvent.CLICK,onChessman_handler);
+		}
+
+		private function initGame() : void
+		{
+			//当前计时器归零
+			_model.currentTimerCount = 0;
+			//初始化地图数据
+			mapData.createMapData(_model.currentLv);
+			//重新排列地图
+			rebuild();
+			
+			_timer.start();
+		}
+		
+		private function startTimer(event : TimerEvent) : void
+		{
+			if(_timer.currentCount == 3) {
+				_timer.stop();
+				_timer.reset();
+				//开始计时 开始游戏
+				_model.timer.start();
+			}
 		}
 		
 		private function cleanGamePane(event : GameOverEvent) : void
 		{
+			if(this.hasEventListener(MouseEvent.CLICK)) {
+				this.removeEventListener(MouseEvent.CLICK,onChessman_handler);
+			}
 			cleanGamePaneChild();
 			mapData.cleanMapData();
 		}
@@ -139,12 +161,15 @@ package cn.sftec.www.view
 		private function nextLv():void
 		{
 			_model.currentLv ++;
-			mapData.createMapData(_model.currentLv);
-			refresh();
+			initGame();
 		}
 		
 		private function onChessman_handler(e:MouseEvent):void {
-			currentBlock = e.currentTarget as Block;
+			var selectIndexY : int = int(mouseY/Block.CHESSMAN_LENGTH)+1;
+			var selectIndexX : int = int(mouseX/Block.CHESSMAN_LENGTH)+1;
+			if(!mapData.mapArr[selectIndexY][selectIndexX]) return;
+			currentBlock = mapData.mapArr[selectIndexY][selectIndexX];
+//			currentBlock = e.currentTarget as Block;
 			if (prevBlock != currentBlock) {
 				//显示选中状态
 				currentBlock.isCheckIn = true;
@@ -189,6 +214,10 @@ package cn.sftec.www.view
 			}
 		}
 		
+		/**
+		 * 连线成功处理
+		 * 
+		 */		
 		private function validDoubleClick():void {
 			//清除地图上消失的棋子
 			this.removeChild(oldBlock);
@@ -201,12 +230,22 @@ package cn.sftec.www.view
 			oldBlock = null;
 			currentBlock = null;
 			//判断剩下的是否还能继续游戏，如果不能则强制刷新
-			//if (!m_chessmanList.some(isConnectChessman)) {
-			//TODO 这里做在完善一下
-			//sendNotification(UsePropertyCommand.NAME, {propName:modelLocator.PROP_REPUT});
-			//}
-			currentTimeCount = 0;
-			_model.currentScore += 10;
+//			if (!m_chessmanList.some(isConnectChessman)) {
+//				TODO 这里做在完善一下
+//				sendNotification(UsePropertyCommand.NAME, {propName:modelLocator.PROP_REPUT});
+//			}
+			if(_model.currentTimerCount - prevConnectTime < _model.BATTER_TIME) {
+				batterTip.setBatterCount(m_continuousNum);
+				m_continuousNum ++;
+				trace(m_continuousNum);
+			} else {
+				m_continuousNum = 0;
+			}
+			_model.currentTimerCount -= 1000/_model.TIMER_UTIL*_model.BACK_TIME;
+			if(_model.currentTimerCount < 0) _model.currentTimerCount = 0;
+			prevConnectTime = _model.currentTimerCount;
+			trace("prev     " + prevConnectTime);
+			_model.currentScore += ModelLocator.BODY_SCORE;
 			if(mapData.mapBlockArr.length == 0) {
 				nextLv();
 			}

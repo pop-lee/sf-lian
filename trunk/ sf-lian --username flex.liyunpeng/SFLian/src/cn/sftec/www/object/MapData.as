@@ -66,10 +66,10 @@ package cn.sftec.www.object
 			var blockCount : int = 0;
 			for(var i : int = 1;i <= BLOCK_TOTAL_ROW;i++) {
 				for(var j : int = 1;j <= BLOCK_TOTAL_COL;j++) {
-					var block : Block = new (blockType[int(blockCount/2)%blockType.length] as Class);
-					block.mapX = j;
-					block.mapY = i;
-					mapArr[j][i] = block;
+					var cls : Class = blockType[int(blockCount/2)%blockType.length] as Class;
+					var block : Block = new cls();
+					block.setData(j,i);
+					mapArr[i][j] = block;
 					mapBlockArr[blockCount] = block;
 					blockCount ++;
 				}
@@ -78,14 +78,10 @@ package cn.sftec.www.object
 		
 		public function cleanMapData():void
 		{
-			mapArr = new Vector.<Vector.<Block>>
-			for(var i : int = 0;i < TOTAL_ROW;i++) {
-				mapArr.push(new Vector.<Block>(TOTAL_COL));
+			while(mapBlockArr.length > 0) {
+				removeBlock(mapBlockArr[0]);
 			}
-			mapBlockArr = new Vector.<Block>(BLOCK_TOTAL_ROW*BLOCK_TOTAL_COL);
-			System.gc();
 		}
-		
 		
 		/**
 		 * 洗牌整个地图的数据

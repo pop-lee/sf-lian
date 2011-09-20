@@ -18,11 +18,11 @@ package cn.sftec.www.view
 		
 		private var submitScoreTip : SubmitScoreTip;
 		
-		private var submitBtn : SFButton;
+		private var submitBtn : SubmitBtn;
 		
-		private var canelBtn : SFButton;
+		private var canelBtn : CanelBtn;
 		
-		private var okBtn : SFButton;
+		private var okBtn : OkBtn;
 		
 		public function GameOverPage()
 		{
@@ -33,7 +33,7 @@ package cn.sftec.www.view
 		private function init() : void
 		{
 			var gameOverTip : GameOverTip = new GameOverTip();
-			gameOverTip.x = 5;
+			gameOverTip.x = 46;
 			gameOverTip.y = 40;
 			addChild(gameOverTip);
 			
@@ -42,37 +42,29 @@ package cn.sftec.www.view
 			submitScoreTip.y = 192;
 			addChild(submitScoreTip);
 			
-			submitBtn = new SFButton();
-			submitBtn.x = 7;
+			submitBtn = new SubmitBtn();
+			submitBtn.x = 12;
 			submitBtn.y = 284;
-			submitBtn.width = 33;
-			submitBtn.height = 35;
-			submitBtn.backgroundAlpha = 0;
 			submitBtn.addEventListener(MouseEvent.CLICK,submitScore);
 			addChild(submitBtn);
 			
-			canelBtn = new SFButton();
-			canelBtn.x = 200;
+			canelBtn = new CanelBtn();
+			canelBtn.x = 195;
 			canelBtn.y = 284;
-			canelBtn.width = 33;
-			canelBtn.height = 35;
-			canelBtn.backgroundAlpha = 0;
 			canelBtn.addEventListener(MouseEvent.CLICK,canelSubmit);
 			addChild(canelBtn);
 			
-			okBtn = new SFButton();
+			okBtn = new OkBtn();
 			okBtn.x = 79;
 			okBtn.y = 284;
-			okBtn.width = 79;
-			okBtn.height = 35;
-			okBtn.backgroundAlpha = 0;
 			okBtn.addEventListener(MouseEvent.CLICK,okHandle);
 		}
 		
 		public function submitScore(event : MouseEvent) : void
 		{
-//			MttScore.submit(_model.currentScore,submitRequest);
-			submitRequest();
+			submitBtn.visible = false;
+			canelBtn.visible = false;
+			MttScore.submit(_model.currentScore,submitRequest);
 		}
 		
 		private function canelSubmit(event : MouseEvent) : void
@@ -80,7 +72,7 @@ package cn.sftec.www.view
 			gameOver();
 		}
 		
-		private function submitRequest(result : Object = null):void
+		private function submitRequest(result : Object):void
 		{
 			submitScoreTip.gotoAndStop(2);
 			addChild(okBtn);

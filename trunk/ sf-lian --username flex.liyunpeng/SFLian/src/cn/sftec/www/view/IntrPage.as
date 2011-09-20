@@ -15,6 +15,7 @@ package cn.sftec.www.view
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	
+	[Embed(source="access/mainPage.swf",symbol="intrPage")]
 	public class IntrPage extends SFContainer
 	{
 		private var _intr : String = "" +
@@ -47,13 +48,13 @@ package cn.sftec.www.view
 			label.y = 60;
 			addChild(label);
 			
+			
 			var backMainBtn : SFButton = new SFButton();
-			backMainBtn.width = 100;
-			backMainBtn.height = 30;
-			backMainBtn.x = 5;
+			backMainBtn.width = 38;
+			backMainBtn.height = 26;
+			backMainBtn.x = 15;
 			backMainBtn.y = 290;
-//			backMainBtn.label = "";
-//			backMainBtn.backgroundImage = ModelLocator.getImageResource("returnBtn");
+			backMainBtn.backgroundAlpha = 0;
 			backMainBtn.addEventListener(MouseEvent.CLICK,toMainPage);
 			addChild(backMainBtn);
 		}
