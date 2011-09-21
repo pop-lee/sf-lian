@@ -74,8 +74,11 @@ package cn.sftec.www.view
 		
 		private function submitRequest(result : Object):void
 		{
-			submitScoreTip.gotoAndStop(2);
-			addChild(okBtn);
+			if(result.code == 0) {
+				submitScoreTip.gotoAndStop(2);
+				addChild(okBtn);
+				MttScore.query(queryScoreHandle);
+			}
 		}
 		
 		private function okHandle(event : MouseEvent) : void
@@ -103,6 +106,19 @@ package cn.sftec.www.view
 			
 			SFApplication.application.removeChild(this);
 			System.gc();
+		}
+		
+		private function queryScoreHandle(result : Object) : void
+		{
+			if(result.code == 0) {
+				var items:Array = result.board as Array;
+				for (var i:int = 0; i < items.length; i++)
+				{
+					//				sInfo += "\n好友[" + (i + 1) + "]:" + items[i].nickName + " " + items[i].score + " " + items[i].playTime;
+					var _score: int = items[i].score;
+					_model.topScoreArr[i] = _score;
+				}
+			}
 		}
 	}
 }

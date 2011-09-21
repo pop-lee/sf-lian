@@ -6,7 +6,9 @@ package cn.sftec.www.view
 	
 	public class BatterTip extends SFSprite
 	{
-		private const DELTA_ALPHA:Number = 0.08;
+		private const DELTA_ALPHA:Number = 0.03;
+		
+		private var batterCount : NumText;
 		
 		public function BatterTip()
 		{
@@ -18,14 +20,21 @@ package cn.sftec.www.view
 		private function init():void
 		{
 			this.alpha = 0;
+			batterCount = new NumText();
+			batterCount.label.text = "20";
+			addChild(batterCount);
+			
 			var batterText : BatterText = new BatterText();
+			batterText.x = 25;
 			addChild(batterText);
 		}
 		
-		public function setBatterCount(count : uint) : void
+		public function setBatterCount(count : int) : void
 		{
-			if(count > 0)
+			if(count > 0) {
 				alpha = 1;
+				batterCount.label.text = count + "";
+			}
 		}
 		
 		private function enterFrameHandle(event : Event) : void
