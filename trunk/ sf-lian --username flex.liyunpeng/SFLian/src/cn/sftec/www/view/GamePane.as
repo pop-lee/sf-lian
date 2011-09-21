@@ -9,16 +9,20 @@ package cn.sftec.www.view
 	import cn.sftech.www.view.SFContainer;
 	import cn.sftech.www.view.SFSprite;
 	
+	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
+	import flash.system.System;
 	import flash.utils.Timer;
 	
 	[Embed(source="access/mainPage.swf",symbol="gamePane")]
 	public class GamePane extends SFContainer
 	{
 		private var m_checkerMap:Vector.<Vector.<Block>>;
+		
+		private var parentPage : SFContainer;
 		
 		//当前块
 		private var currentBlock : Block;
@@ -27,7 +31,7 @@ package cn.sftec.www.view
 		//上一个选中的块
 		private var prevBlock:Block;
 		//连击次数
-		private var m_continuousNum:uint;
+		private var m_continuousNum:int = -1;
 		//上次连接时计数器计数时间
 		private var prevConnectTime : uint;
 		//地图数据
@@ -42,13 +46,25 @@ package cn.sftec.www.view
 		private var m_connectLines:ConnectLines;
 		//倒数三秒开始游戏的计时器
 		private var _timer : Timer = new Timer(1000,3);
+		//关数文本条
+		private var lvLabel : NumText;
+		//分数文本条
+		private var scoreLabel : NumText;
+		
+		private var refreshBtn : RefreshBtn;
+		
+		private var refreshCountLabel : NumText
+		
+		private var gameOverPage : GameOverPage;
+		
+		private var startTimerPage : StartGameTimer;
 		
 		private var _model : ModelLocator = ModelLocator.getInstance();
 		
-		public function GamePane()
+		public function GamePane(parent : SFContainer)
 		{
 			super();
-			init();
+			this.parentPage = parent;
 		}
 		
 		private function init() : void
@@ -57,12 +73,37 @@ package cn.sftec.www.view
 			focusIn.visible = false;
 			
 			batterTip = new BatterTip();
-			batterTip.x = 116;
-			batterTip.y = 287;
+			batterTip.x = 105;
+			batterTip.y = 280;
 			batterTip.width = 70;
 			batterTip.height = 21;
 			batterTip.backgroundAlpha = 0;
-			SFApplication.application.addChild(batterTip);
+			parentPage.addChild(batterTip);
+			
+			lvLabel = new NumText();
+			lvLabel.label.text = _model.currentLv + "";
+			lvLabel.x = 44;
+			lvLabel.y = 10;
+			lvLabel.height = 27;
+			parentPage.addChild(lvLabel);
+			
+			scoreLabel = new NumText();
+			scoreLabel.label.text = _model.currentScore + "";
+			scoreLabel.x = 122;
+			scoreLabel.y = 10;
+			parentPage.addChild(scoreLabel);
+			
+			refreshBtn = new RefreshBtn();
+			refreshBtn.stop();
+			refreshBtn.x = 185;
+			refreshBtn.y = 290;
+			refreshBtn.backgroundAlpha = 0;
+			refreshBtn.addEventListener(MouseEvent.CLICK,refreshMap);
+			refreshCountLabel = new NumText();
+			refreshCountLabel.x = 16;
+			refreshCountLabel.y = 2;
+			refreshBtn.addChild(refreshCountLabel);
+			parentPage.addChild(refreshBtn);
 			
 			m_connectLines = new ConnectLines();
 			m_connectLines.setChessmanSize(Block.CHESSMAN_LENGTH, Block.CHESSMAN_LENGTH);
@@ -73,6 +114,7 @@ package cn.sftec.www.view
 			
 			_timer.addEventListener(TimerEvent.TIMER,startTimer);
 			prevConnectTime = _model.limitTime;
+			
 		}
 		
 		public function startGame():void
@@ -82,17 +124,62 @@ package cn.sftec.www.view
 			//当前关数归为1
 			_model.currentLv = 1;
 			
+			init();
+			
 			initGame();
 		}
 		
-		public function gameOverHandle() : void
+		private function initGame() : void
 		{
-			var gameOverPage : GameOverPage = new GameOverPage();
-			gameOverPage.addEventListener(GameOverEvent.GAME_OVER_EVENT,cleanGamePane);
-			gameOverPage.width = SFApplication.application.stageWidth;
-			gameOverPage.height = SFApplication.application.stageHeight;
-			gameOverPage.backgroundAlpha = .5;
-			SFApplication.application.addChild(gameOverPage);
+			//当前计时器归零
+			_model.currentTimerCount = 0;
+			//刷新次数回置
+			_model.refreshCount = _model.REFRESH_COUNT;
+			//更新刷新次数显示
+			refreshCountLabel.label.text = _model.refreshCount + "";
+			//更新刷新是否可用显示
+			refreshBtn.gotoAndStop(1);
+			//更新当前关数显示
+			lvLabel.label.text = _model.currentLv + "";
+			//初始化地图数据
+			mapData.createMapData(_model.currentLv);
+			//重新排列地图
+			rebuild();
+			
+			if(this.hasEventListener(MouseEvent.CLICK)) {
+				this.removeEventListener(MouseEvent.CLICK,onChessman_handler);
+			}
+			
+			startTimerPage = new StartGameTimer();
+			startTimerPage.x = this.x;
+			startTimerPage.y = this.y;
+			parentPage.addChild(startTimerPage);
+			
+			_timer.start();
+		}
+		
+		/**
+		 * 开始计时
+		 * @param event 计时器Timer触发的TimerEvent
+		 * 
+		 */		
+		private function startTimer(event : TimerEvent) : void
+		{
+			startTimerPage.gotoAndStop(_timer.currentCount+1);
+			if(_timer.currentCount == 3&&!_model.isPaused) {
+				parentPage.removeChild(startTimerPage);
+				startTimerPage = null;
+				System.gc();
+				
+				if(!this.hasEventListener(MouseEvent.CLICK)) {
+					this.addEventListener(MouseEvent.CLICK,onChessman_handler);
+				}
+				
+				_timer.stop();
+				_timer.reset();
+				//开始计时 开始游戏
+				_model.timer.start();
+			}
 		}
 		
 		/**
@@ -101,6 +188,7 @@ package cn.sftec.www.view
 		 */		
 		public function rebuild() : void
 		{
+			//清楚目前的所有块
 			cleanGamePaneChild();
 			
 			//重新排列数据
@@ -113,38 +201,51 @@ package cn.sftec.www.view
 			}
 			addChild(focusIn);
 			addChild(m_connectLines);
-			this.addEventListener(MouseEvent.CLICK,onChessman_handler);
-		}
-
-		private function initGame() : void
-		{
-			//当前计时器归零
-			_model.currentTimerCount = 0;
-			//初始化地图数据
-			mapData.createMapData(_model.currentLv);
-			//重新排列地图
-			rebuild();
-			
-			_timer.start();
 		}
 		
-		private function startTimer(event : TimerEvent) : void
+		public function gameOverHandle() : void
 		{
-			if(_timer.currentCount == 3) {
+			gameOverPage = new GameOverPage();
+			gameOverPage.addEventListener(GameOverEvent.GAME_OVER_EVENT,cleanGamePane);
+			gameOverPage.width = parentPage.width;
+			gameOverPage.height = parentPage.height;
+			gameOverPage.backgroundAlpha = .5;
+			SFApplication.application.addChild(gameOverPage);
+		}
+		
+		public function cleanGamePane(event : GameOverEvent=null) : void
+		{
+			if(startTimerPage) {
 				_timer.stop();
 				_timer.reset();
-				//开始计时 开始游戏
-				_model.timer.start();
+				parentPage.removeChild(startTimerPage);
+				startTimerPage = null;
 			}
-		}
-		
-		private function cleanGamePane(event : GameOverEvent) : void
-		{
+			if(gameOverPage) {
+				if(gameOverPage.hasEventListener(GameOverEvent.GAME_OVER_EVENT)) {
+					gameOverPage.removeEventListener(GameOverEvent.GAME_OVER_EVENT,cleanGamePane);
+				}
+			}
 			if(this.hasEventListener(MouseEvent.CLICK)) {
 				this.removeEventListener(MouseEvent.CLICK,onChessman_handler);
 			}
 			cleanGamePaneChild();
+			cleanParentChild();
 			mapData.cleanMapData();
+		}
+		
+		private function cleanParentChild() : void
+		{
+			parentPage.removeChild(batterTip);
+			batterTip = null;
+			parentPage.removeChild(refreshBtn);
+			refreshBtn = null;
+			parentPage.removeChild(lvLabel);
+			lvLabel = null;
+			parentPage.removeChild(scoreLabel);
+			scoreLabel = null;
+			
+			System.gc();
 		}
 		
 		private function cleanGamePaneChild() : void
@@ -152,6 +253,15 @@ package cn.sftec.www.view
 			while(numChildren > 0) {
 				removeChildAt(0);
 			}
+		}
+		
+		private function refreshMap(event : MouseEvent):void
+		{
+			if(_model.refreshCount == 0) return;
+			rebuild();
+			_model.refreshCount--;
+			refreshCountLabel.label.text = _model.refreshCount + "";
+			if(_model.refreshCount == 0) refreshBtn.gotoAndStop(2);
 		}
 		
 		/**
@@ -164,6 +274,11 @@ package cn.sftec.www.view
 			initGame();
 		}
 		
+		/**
+		 * 点击块执行的操作
+		 * @param e点击游戏面板触发的点击事件
+		 * 
+		 */		
 		private function onChessman_handler(e:MouseEvent):void {
 			var selectIndexY : int = int(mouseY/Block.CHESSMAN_LENGTH)+1;
 			var selectIndexX : int = int(mouseX/Block.CHESSMAN_LENGTH)+1;
@@ -245,7 +360,10 @@ package cn.sftec.www.view
 			if(_model.currentTimerCount < 0) _model.currentTimerCount = 0;
 			prevConnectTime = _model.currentTimerCount;
 			trace("prev     " + prevConnectTime);
-			_model.currentScore += ModelLocator.BODY_SCORE;
+			_model.currentScore += m_continuousNum>0?
+				ModelLocator.BODY_SCORE*m_continuousNum*1.5:
+				ModelLocator.BODY_SCORE;
+			scoreLabel.label.text = _model.currentScore+"";
 			if(mapData.mapBlockArr.length == 0) {
 				nextLv();
 			}

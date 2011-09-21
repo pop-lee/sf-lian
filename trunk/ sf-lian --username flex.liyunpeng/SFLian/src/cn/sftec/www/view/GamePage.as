@@ -16,6 +16,8 @@ package cn.sftec.www.view
 	{
 		private var gamePane : GamePane;
 		
+		private var pausePage : PausePage;
+		
 		private var timerBar : TimerBar;
 		
 		private var _model : ModelLocator = ModelLocator.getInstance();
@@ -28,7 +30,7 @@ package cn.sftec.www.view
 		
 		private function init():void
 		{
-			gamePane = new GamePane();
+			gamePane = new GamePane(this);
 			gamePane.width = 240;
 			gamePane.height = 240;
 			gamePane.x = 0;
@@ -60,26 +62,10 @@ package cn.sftec.www.view
 			_backMainBtn.addEventListener(MouseEvent.CLICK,toMainPage);
 			addChild(_backMainBtn);
 			
-			var _refreshBtn : SFButton = new SFButton();
-			_refreshBtn.width = 38;
-			_refreshBtn.height = 26;
-			_refreshBtn.x = 185;
-			_refreshBtn.y = 290;
-			_refreshBtn.backgroundAlpha = 0;
-			_refreshBtn.addEventListener(MouseEvent.CLICK,refreshMap);
-			addChild(_refreshBtn);
-			
-			var lvLabel : SFLabel = new SFLabel();
-			lvLabel.text = _model.currentLv + "";
-			lvLabel.x = 43;
-			lvLabel.y = 1;
-			lvLabel.width = 60;
-			lvLabel.height = 27;
-			lvLabel.size = 40;
-			lvLabel.color = 0xff0000;
-			lvLabel.font = (new ModelLocator.font()).fontName;
-			addChild(lvLabel);
-			
+			pausePage = new PausePage();
+			pausePage.visible = false;
+			pausePage.addEventListener(MouseEvent.CLICK,toContinue);
+			SFApplication.application.addChild(pausePage);
 		}
 		
 		public function startGame() : void
@@ -93,6 +79,16 @@ package cn.sftec.www.view
 		private function pauseGame(event : MouseEvent) : void
 		{
 			_model.timer.stop();
+			pausePage.visible = true;
+			_model.isPaused = true;
+			
+		}
+		
+		private function toContinue(event : MouseEvent) : void
+		{
+			_model.isPaused = false;
+			pausePage.visible = false;
+			_model.timer.start();
 		}
 		
 		private function timeHandle(event : TimerEvent) :void
@@ -111,19 +107,17 @@ package cn.sftec.www.view
 		
 		private function toMainPage(event : MouseEvent):void
 		{
+			_model.timer.stop();
+			_model.timer.reset();
 			if(_model.currentScore > 0) {
-				_model.timer.stop();
-				_model.timer.reset();
 				gamePane.gameOverHandle();
+			} else {
+				gamePane.cleanGamePane();
+				var changePageEvent : ChangePageEvent = new ChangePageEvent();
+				changePageEvent.data = ChangePageEvent.TO_MAIN_PAGE;
+				SFApplication.application.dispatchEvent(changePageEvent);
 			}
-			var changePageEvent : ChangePageEvent = new ChangePageEvent();
-			changePageEvent.data = ChangePageEvent.TO_MAIN_PAGE;
-			SFApplication.application.dispatchEvent(changePageEvent);
 		}
 		
-		private function refreshMap(event : MouseEvent):void
-		{
-			gamePane.rebuild();
-		}
 	}
 }

@@ -7,9 +7,6 @@ package cn.sftec.www.model
 	{
 		private static var _model : ModelLocator = new ModelLocator();
 		
-		[Embed(source="access/numFont.swf",symbol="numFont")]
-		public static var font : Class;
-		
 		/**
 		 * 当前关数
 		 */		
@@ -26,7 +23,7 @@ package cn.sftec.www.model
 		public var currentScore : uint = 0;
 		
 		/**
-		 * 
+		 * 当前计时数
 		 */
 		public var currentTimerCount : int = 0;
 		
@@ -59,6 +56,21 @@ package cn.sftec.www.model
 		 * 游戏进行中的倒数计时器(单位:100毫秒)
 		 */		
 		public var timer : Timer = new Timer(TIMER_UTIL);
+		
+		/**
+		 * 定义刷新次数
+		 */		
+		public const REFRESH_COUNT : uint = 3;
+		
+		/**
+		 * 定义刷新次数计数
+		 */
+		public var refreshCount : uint = REFRESH_COUNT;
+		
+		/**
+		 * 游戏是否暂停的标签
+		 */		
+		public var isPaused : Boolean = false;
 		
 		public function ModelLocator()
 		{
