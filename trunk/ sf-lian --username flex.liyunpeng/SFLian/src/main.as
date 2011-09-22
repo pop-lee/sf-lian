@@ -10,9 +10,11 @@ package
 	import cn.sftech.www.view.SFScoreList;
 	import cn.sftech.www.view.SFViewStack;
 	
+	import com.qq.openapi.MttScore;
 	import com.qq.openapi.MttService;
 	
 	import flash.display.Sprite;
+	import flash.events.Event;
 	
 	[SWF(width="240",height="320")]
 	public class main extends SFApplication
@@ -34,7 +36,21 @@ package
 		
 		override protected function init():void 
 		{
+			MttService.initialize(root, "D5FE393C02DB836FFDE413B8794056ED","326");
+			MttService.addEventListener(MttService.ETLOGOUT, onLogout);
+			
+			initData();
 			initUI();
+		}
+		
+		private function initData() : void
+		{
+			MttScore.query(queryScoreHandle);
+		}
+		
+		private function onLogout(e:Event):void
+		{
+			MttService.login();
 		}
 		
 		private function initUI():void
@@ -59,13 +75,13 @@ package
 			intrPage = new IntrPage();
 			intrPage.percentWidth = 100;
 			intrPage.percentHeight = 100;
-			intrPage.backgroundColor = 0x00ff00;
+			intrPage.backgroundAlpha = 0;
 			vs.addItem(intrPage);
 			
 			scoreListPage = new ScoreListPage();
 			scoreListPage.percentWidth = 100;
 			scoreListPage.percentHeight = 100;
-			scoreListPage.backgroundColor = 0x0000ff;
+			scoreListPage.backgroundAlpha = 0
 			vs.addItem(scoreListPage);
 		}
 		
@@ -80,6 +96,19 @@ package
 				return;
 			}
 			vs.selectedIndex = event.data;
+		}
+		
+		private function queryScoreHandle(result : Object) : void
+		{
+			if(result.code == 0) {
+				var items:Array = result.board as Array;
+				for (var i:int = 0; i < items.length; i++)
+				{
+//				sInfo += "\n好友[" + (i + 1) + "]:" + items[i].nickName + " " + items[i].score + " " + items[i].playTime;
+					var _score: int = items[i].score;
+					_model.topScoreArr[i] = _score;
+				}
+			}
 		}
 	}
 }

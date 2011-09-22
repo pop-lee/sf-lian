@@ -71,7 +71,7 @@ package cn.sftec.www.view
 		public function startGame() : void
 		{
 			//创建游戏界面
-			gamePane.startGame();
+			gamePane.initGame();
 			//计时条回归为满格
 			timerBar.countDown();
 		}
