@@ -1,11 +1,11 @@
 package
 {
-	import cn.sftec.www.event.ChangePageEvent;
-	import cn.sftec.www.model.ModelLocator;
-	import cn.sftec.www.view.GamePage;
-	import cn.sftec.www.view.IntrPage;
-	import cn.sftec.www.view.MainPage;
-	import cn.sftec.www.view.ScoreListPage;
+	import cn.sftech.www.event.ChangePageEvent;
+	import cn.sftech.www.model.ModelLocator;
+	import cn.sftech.www.view.GamePage;
+	import cn.sftech.www.view.IntrPage;
+	import cn.sftech.www.view.MainPage;
+	import cn.sftech.www.view.ScoreListPage;
 	import cn.sftech.www.view.SFApplication;
 	import cn.sftech.www.view.SFLogo;
 	import cn.sftech.www.view.SFScoreList;
