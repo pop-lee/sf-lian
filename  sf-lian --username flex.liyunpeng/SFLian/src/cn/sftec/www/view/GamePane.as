@@ -133,12 +133,14 @@ package cn.sftec.www.view
 		{
 			//当前计时器归零
 			_model.currentTimerCount = 0;
+			//上次连击计时点归零
+			prevConnectTime = 0;
 			//游戏计时器暂停
 			_model.timer.stop();
 			//刷新次数回置
 			_model.refreshCount = _model.REFRESH_COUNT;
 			//连击次数归零
-			batterNum = 0;
+			batterNum = -1;
 			//更新刷新次数显示
 			refreshCountLabel.label.text = _model.refreshCount + "";
 			//更新刷新是否可用显示
@@ -360,14 +362,14 @@ package cn.sftec.www.view
 			if(_model.currentTimerCount - prevConnectTime < _model.BATTER_TIME) {
 				batterTip.setBatterCount(batterNum);
 				batterNum ++;
-				trace(batterNum);
+//				trace(batterNum);
 			} else {
 				batterNum = 0;
 			}
 			_model.currentTimerCount -= 1000/_model.TIMER_UTIL*_model.BACK_TIME;
 			if(_model.currentTimerCount < 0) _model.currentTimerCount = 0;
 			prevConnectTime = _model.currentTimerCount;
-			trace("prev     " + prevConnectTime);
+//			trace("prev     " + prevConnectTime);
 			_model.currentScore += batterNum>0?
 				ModelLocator.BODY_SCORE*batterNum*1.5:
 				ModelLocator.BODY_SCORE;
