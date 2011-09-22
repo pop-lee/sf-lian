@@ -18,9 +18,9 @@ package cn.sftec.www.object
 		public const TOTAL_COL : int = 10;
 		
 		//显示块总行数
-		private const BLOCK_TOTAL_ROW : int = 8;
+		private const BLOCK_TOTAL_ROW : int = 2;
 		//显示块总列数
-		private const BLOCK_TOTAL_COL : int = 8;
+		private const BLOCK_TOTAL_COL : int = 2;
 		
 		/**
 		 * 地图存储数据二维数组

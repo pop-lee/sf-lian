@@ -30,14 +30,14 @@ package cn.sftec.www.view
 		private var oldBlock:Block;
 		//上一个选中的块
 		private var prevBlock:Block;
-		//连击次数
-		private var m_continuousNum:int = -1;
 		//上次连接时计数器计数时间
 		private var prevConnectTime : uint;
 		//地图数据
 		private var mapData : MapData;
 		//选中后焦点效果
 		private var focusIn : FocusIn;
+		//连击次数
+		private var batterNum:int = -1;
 		//连击显示框
 		private var batterTip : BatterTip;
 		//连线的路径
@@ -117,7 +117,7 @@ package cn.sftec.www.view
 			
 		}
 		
-		public function startGame():void
+		public function initGame():void
 		{
 			//当前分数归零
 			_model.currentScore = 0;
@@ -126,15 +126,19 @@ package cn.sftec.www.view
 			
 			init();
 			
-			initGame();
+			initLv();
 		}
 		
-		private function initGame() : void
+		private function initLv() : void
 		{
 			//当前计时器归零
 			_model.currentTimerCount = 0;
+			//游戏计时器暂停
+			_model.timer.stop();
 			//刷新次数回置
 			_model.refreshCount = _model.REFRESH_COUNT;
+			//连击次数归零
+			batterNum = 0;
 			//更新刷新次数显示
 			refreshCountLabel.label.text = _model.refreshCount + "";
 			//更新刷新是否可用显示
@@ -166,19 +170,20 @@ package cn.sftec.www.view
 		private function startTimer(event : TimerEvent) : void
 		{
 			startTimerPage.gotoAndStop(_timer.currentCount+1);
-			if(_timer.currentCount == 3&&!_model.isPaused) {
+			if(_timer.currentCount == 3) {
 				parentPage.removeChild(startTimerPage);
 				startTimerPage = null;
 				System.gc();
+				
+				_timer.stop();
+				_timer.reset();
 				
 				if(!this.hasEventListener(MouseEvent.CLICK)) {
 					this.addEventListener(MouseEvent.CLICK,onChessman_handler);
 				}
 				
-				_timer.stop();
-				_timer.reset();
 				//开始计时 开始游戏
-				_model.timer.start();
+				if(!_model.isPaused)  _model.timer.start();
 			}
 		}
 		
@@ -205,6 +210,8 @@ package cn.sftec.www.view
 		
 		public function gameOverHandle() : void
 		{
+			_timer.stop();
+			
 			gameOverPage = new GameOverPage();
 			gameOverPage.addEventListener(GameOverEvent.GAME_OVER_EVENT,cleanGamePane);
 			gameOverPage.width = parentPage.width;
@@ -271,7 +278,7 @@ package cn.sftec.www.view
 		private function nextLv():void
 		{
 			_model.currentLv ++;
-			initGame();
+			initLv();
 		}
 		
 		/**
@@ -308,11 +315,11 @@ package cn.sftec.www.view
 							//}
 						}else {
 							oldBlock = currentBlock;
-							m_continuousNum = 0;
+							batterNum = 0;
 						}
 					}else {
 						oldBlock = currentBlock;
-						m_continuousNum = 0;
+						batterNum = 0;
 					}
 				}
 				//
@@ -320,6 +327,7 @@ package cn.sftec.www.view
 				focusIn.setFocus(prevBlock);
 			}else {
 				currentBlock.isCheckIn = !currentBlock.isCheckIn;
+				focusIn.visible = false;
 				//是否记录之前点击的棋子
 				if (currentBlock.isCheckIn) {
 					oldBlock = currentBlock;
@@ -332,7 +340,7 @@ package cn.sftec.www.view
 		/**
 		 * 连线成功处理
 		 * 
-		 */		
+		 */
 		private function validDoubleClick():void {
 			//清除地图上消失的棋子
 			this.removeChild(oldBlock);
@@ -350,18 +358,18 @@ package cn.sftec.www.view
 //				sendNotification(UsePropertyCommand.NAME, {propName:modelLocator.PROP_REPUT});
 //			}
 			if(_model.currentTimerCount - prevConnectTime < _model.BATTER_TIME) {
-				batterTip.setBatterCount(m_continuousNum);
-				m_continuousNum ++;
-				trace(m_continuousNum);
+				batterTip.setBatterCount(batterNum);
+				batterNum ++;
+				trace(batterNum);
 			} else {
-				m_continuousNum = 0;
+				batterNum = 0;
 			}
 			_model.currentTimerCount -= 1000/_model.TIMER_UTIL*_model.BACK_TIME;
 			if(_model.currentTimerCount < 0) _model.currentTimerCount = 0;
 			prevConnectTime = _model.currentTimerCount;
 			trace("prev     " + prevConnectTime);
-			_model.currentScore += m_continuousNum>0?
-				ModelLocator.BODY_SCORE*m_continuousNum*1.5:
+			_model.currentScore += batterNum>0?
+				ModelLocator.BODY_SCORE*batterNum*1.5:
 				ModelLocator.BODY_SCORE;
 			scoreLabel.label.text = _model.currentScore+"";
 			if(mapData.mapBlockArr.length == 0) {
