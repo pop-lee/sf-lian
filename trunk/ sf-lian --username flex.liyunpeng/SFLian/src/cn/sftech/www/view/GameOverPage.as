@@ -61,6 +61,7 @@ package cn.sftech.www.view
 		{
 			submitBtn.visible = false;
 			canelBtn.visible = false;
+			submitScoreTip.gotoAndStop(2);
 			MttScore.submit(_model.currentScore,submitRequest);
 		}
 		
@@ -71,10 +72,17 @@ package cn.sftech.www.view
 		
 		private function submitRequest(result : Object):void
 		{
+			//上传成功
 			if(result.code == 0) {
-				submitScoreTip.gotoAndStop(2);
+				submitScoreTip.gotoAndStop(4);
 				addChild(okBtn);
 				MttScore.query(queryScoreHandle);
+			} 
+			//上传失败
+			else {
+				submitScoreTip.gotoAndStop(3);
+				submitBtn.visible = true;
+				canelBtn.visible = true;
 			}
 		}
 		
